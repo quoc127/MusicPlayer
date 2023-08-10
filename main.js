@@ -1,7 +1,7 @@
 /*
     1. Render songs                     ---> done
     2. Scroll top                       --->done                   
-    3. Play / pause / seek
+    3. Play / pause / seek              ---> completed play and pause envent
     4. CD rorate
     5. Next and prev
     6. Randomm
