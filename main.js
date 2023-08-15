@@ -1,9 +1,9 @@
 /*
     1. Render songs                     ---> done
     2. Scroll top                       --->done                   
-    3. Play / pause / seek              ---> completed play and pause envent
-    4. CD rorate
-    5. Next and prev
+    3. Play / pause / seek              ---> completed play and pause and rewind envent
+    4. CD rorate                        ---> done
+    5. Next and prev                    ---> done
     6. Randomm
     7. Next / repeat when ended
     8. Active song
@@ -19,7 +19,9 @@ const cdThumb = $(".cd-thumb");
 const audio = document.querySelector("#audio");
 const cdElement = $(".cd");
 const playBtn = $(".btn-toggle-play");
-
+const process = $(".progress");
+const prevBtn = $('.btn-prev');
+const nextBtn = $('.btn-next');
 const app = {
   currentIndex: 0,
   isPlaying: false,
@@ -147,6 +149,15 @@ const app = {
       cdElement.style.opacity = cdNewWidthElement / cdWidthElemenet;
     };
 
+    // handle rorate "cd" class
+    const cdThumRorateAnimate = cdThumb.animate(
+      [{ transform: "rotate(360deg)" }],
+      {
+        duration: 10000,
+        iteration: Infinity,
+      }
+    );
+    cdThumRorateAnimate.pause();
     // handle when click play button
     playBtn.onclick = function () {
       if (_this.isPlaying) {
@@ -157,15 +168,44 @@ const app = {
     };
 
     // when song played
-    audio.onplay = function(){
+    audio.onplay = function () {
       _this.isPlaying = true;
-        player.classList.add("playing");
+      player.classList.add("playing");
+      cdThumRorateAnimate.play();
     };
 
     //when song paused
-    audio.onpause = function(){
+    audio.onpause = function () {
       _this.isPlaying = false;
       player.classList.remove("playing");
+      cdThumRorateAnimate.pause();
+    };
+
+    // when process song change
+    audio.ontimeupdate = function () {
+      if (audio.duration) {
+        const processPercent = Math.floor(
+          (audio.currentTime / audio.duration) * 100
+        );
+        process.value = processPercent;
+      }
+    };
+
+    // when rewind song
+    process.onchange = function (e) {
+      const rewindTime = (audio.duration / 100) * e.target.value;
+      audio.currentTime = rewindTime;
+    };
+
+    //when next song
+    nextBtn.onclick = function(){
+      _this.nextSong();
+      audio.play();
+    };
+
+    prevBtn.onclick = function(){
+      _this.prevSong();
+      audio.play();
     };
   },
 
@@ -175,6 +215,30 @@ const app = {
         return this.songs[this.currentIndex];
       },
     });
+  },
+
+  loadCurretnSong: function () {
+    heading.textContent = this.currentSong.name;
+    cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
+    audio.src = this.currentSong.path;
+  },
+
+  nextSong: function(){
+    this.currentIndex++;
+    if(this.currentIndex >= this.songs.length){
+      this.currentIndex = 0;
+    }
+    console.log(this.currentIndex);
+    this.loadCurretnSong();
+  },
+
+  prevSong: function(){
+    this.currentIndex--;
+    if(this.currentIndex < 0){
+      this.currentIndex = this.songs.length - 1;
+      // console.log(this.currentIndex);
+    }
+    this.loadCurretnSong();
   },
 
   render: function () {
@@ -195,14 +259,6 @@ const app = {
         `;
     });
     $(".playlist").innerHTML = htmls.join("");
-  },
-
-  loadCurretnSong: function () {
-    heading.textContent = this.currentSong.name;
-    cdThumb.style.backgroundImage = `url('${this.currentSong.image}')`;
-    audio.src = this.currentSong.path;
-
-    console.log(heading, cdThumb, audio);
   },
 
   start: function () {
