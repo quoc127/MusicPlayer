@@ -4,9 +4,9 @@
     3. Play / pause / seek              ---> completed play and pause and rewind envent
     4. CD rorate                        ---> done
     5. Next and prev                    ---> done
-    6. Randomm
-    7. Next / repeat when ended
-    8. Active song
+    6. Randomm                          ---> done
+    7. Next / repeat when ended         ---> done
+    8. Active song                      --->done
     9. Scroll active song into view
     10. Play son when click
 */
@@ -20,11 +20,16 @@ const audio = document.querySelector("#audio");
 const cdElement = $(".cd");
 const playBtn = $(".btn-toggle-play");
 const process = $(".progress");
-const prevBtn = $('.btn-prev');
-const nextBtn = $('.btn-next');
+const prevBtn = $(".btn-prev");
+const nextBtn = $(".btn-next");
+const randomBtn = $(".btn-random");
+const repeatBtn = $(".btn-repeat");
+
 const app = {
   currentIndex: 0,
   isPlaying: false,
+  isRandom: false,
+  isRepeat: false,
   songs: [
     {
       name: "Nơi này có anh",
@@ -139,6 +144,7 @@ const app = {
   handleEvent: function () {
     const cdWidthElemenet = cdElement.offsetWidth;
     const _this = this;
+
     // zoom out/in "cd" class
     document.onscroll = function () {
       const scrollTop = window.scrollY || document.documentElement.scrollTop;
@@ -191,21 +197,51 @@ const app = {
       }
     };
 
-    // when rewind song
+    // handle when click rewind song
     process.onchange = function (e) {
       const rewindTime = (audio.duration / 100) * e.target.value;
       audio.currentTime = rewindTime;
     };
 
-    //when next song
-    nextBtn.onclick = function(){
-      _this.nextSong();
+    // handle when click next song
+    nextBtn.onclick = function () {
+      if (_this.isRandom) {
+        _this.playRandomSong();
+      } else {
+        _this.nextSong();
+      }
       audio.play();
+      _this.render();
     };
 
-    prevBtn.onclick = function(){
-      _this.prevSong();
+    // handle when click prev song
+    prevBtn.onclick = function () {
+      if (_this.isRandom) {
+        _this.playRandomSong();
+      } else {
+        _this.prevSong();
+      }
       audio.play();
+      _this.render();
+    };
+
+    // handle turn on/turn off when click random song
+    randomBtn.onclick = function (e) {
+      _this.isRandom = !_this.isRandom;
+      randomBtn.classList.toggle("active", _this.isRandom);
+    };
+
+    // hanlde repeat when click repeat song
+    repeatBtn.onclick = function () {
+      _this.repeatBtn = !_this.repeatBtn;
+      repeatBtn.classList.toggle("active", _this.repeatBtn);
+    };
+
+    //handle next song when current song ended
+    audio.onended = function () {
+      if (_this.repeatBtn) {
+        audio.play();
+      } else nextBtn.click();
     };
   },
 
@@ -223,28 +259,36 @@ const app = {
     audio.src = this.currentSong.path;
   },
 
-  nextSong: function(){
+  nextSong: function () {
     this.currentIndex++;
-    if(this.currentIndex >= this.songs.length){
+    if (this.currentIndex >= this.songs.length) {
       this.currentIndex = 0;
     }
-    console.log(this.currentIndex);
     this.loadCurretnSong();
   },
 
-  prevSong: function(){
+  prevSong: function () {
     this.currentIndex--;
-    if(this.currentIndex < 0){
+    if (this.currentIndex < 0) {
       this.currentIndex = this.songs.length - 1;
-      // console.log(this.currentIndex);
     }
+    this.loadCurretnSong();
+  },
+
+  playRandomSong: function () {
+    let indexRandomSong;
+    do {
+      indexRandomSong = Math.floor(Math.random() * this.songs.length);
+    } while (indexRandomSong === this.currentIndex);
+
+    this.currentIndex = indexRandomSong;
     this.loadCurretnSong();
   },
 
   render: function () {
-    const htmls = this.songs.map((song) => {
+    const htmls = this.songs.map((song, index) => {
       return `
-        <div class="song">
+        <div class="song ${index === this.currentIndex ? "active" : ""}">
         <div class="thumb"
             style="background-image: url('${song.image}')">
         </div>
