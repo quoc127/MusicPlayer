@@ -187,6 +187,12 @@ const app = {
       path: "./assets/music/nevada.mp3",
       image: "./assets/img/nevada.jpg",
     },
+    {
+      name: "Timber",
+      singer: "Pitbull",
+      path: "./assets/music/timber.mp4",
+      image: "./assets/img/timber.png",
+    },
   ],
 
   handleEvent: function () {
