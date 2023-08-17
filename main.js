@@ -6,12 +6,13 @@
     5. Next and prev                    ---> done
     6. Randomm                          ---> done
     7. Next / repeat when ended         ---> done
-    8. Active song                      --->done
-    9. Scroll active song into view
-    10. Play son when click
+    8. Active song                      ---> done
+    9. Scroll active song into view     ---> done
+    10. Play song when click            ---> done
 */
 const $ = document.querySelector.bind(document);
 const $$ = document.querySelectorAll.bind(document);
+const PLAYER_STORAGE_KEY = "MUCSIC_PLAYER";
 
 const heading = $("header h2");
 const player = $(".player");
@@ -24,6 +25,7 @@ const prevBtn = $(".btn-prev");
 const nextBtn = $(".btn-next");
 const randomBtn = $(".btn-random");
 const repeatBtn = $(".btn-repeat");
+const playlist = $(".playlist");
 
 const app = {
   currentIndex: 0,
@@ -217,7 +219,9 @@ const app = {
         iteration: Infinity,
       }
     );
+
     cdThumRorateAnimate.pause();
+
     // handle when click play button
     playBtn.onclick = function () {
       if (_this.isPlaying) {
@@ -266,6 +270,7 @@ const app = {
       }
       audio.play();
       _this.render();
+      _this.scrollActiveSong();
     };
 
     // handle when click prev song
@@ -277,6 +282,7 @@ const app = {
       }
       audio.play();
       _this.render();
+      _this.scrollActiveSong();
     };
 
     // handle turn on/turn off when click random song
@@ -287,8 +293,8 @@ const app = {
 
     // hanlde repeat when click repeat song
     repeatBtn.onclick = function () {
-      _this.repeatBtn = !_this.repeatBtn;
-      repeatBtn.classList.toggle("active", _this.repeatBtn);
+      _this.repeatBtn = !_this.isRepeat;
+      repeatBtn.classList.toggle("active", _this.isRepeat);
     };
 
     //handle next song when current song ended
@@ -296,6 +302,20 @@ const app = {
       if (_this.repeatBtn) {
         audio.play();
       } else nextBtn.click();
+    };
+
+    // handle when click in playlist
+    playlist.onclick = function (e) {
+      const songNode = e.target.closest(".song:not(.active)");
+      const optionNode = e.target.closest(".option");
+      if (songNode || optionNode) {
+        if (songNode) {
+          _this.currentIndex = Number(songNode.dataset.index);
+          _this.loadCurretnSong();
+          _this.render();
+          audio.play();
+        }
+      }
     };
   },
 
@@ -329,6 +349,18 @@ const app = {
     this.loadCurretnSong();
   },
 
+  scrollActiveSong: function () {
+    setTimeout(() => {
+      $(".song.active").scrollIntoView({
+        behavior: "smooth",
+        block:
+          this.currentIndex === 0 || this.currentIndex === 1
+            ? "center"
+            : "nearest",
+      });
+    }, 300);
+  },
+
   playRandomSong: function () {
     let indexRandomSong;
     do {
@@ -342,7 +374,9 @@ const app = {
   render: function () {
     const htmls = this.songs.map((song, index) => {
       return `
-        <div class="song ${index === this.currentIndex ? "active" : ""}">
+        <div class="song ${
+          index === this.currentIndex ? "active" : ""
+        }" data-index="${index}">
         <div class="thumb"
             style="background-image: url('${song.image}')">
         </div>
@@ -356,7 +390,7 @@ const app = {
     </div>
         `;
     });
-    $(".playlist").innerHTML = htmls.join("");
+    playlist.innerHTML = htmls.join("");
   },
 
   start: function () {
@@ -368,6 +402,7 @@ const app = {
 
     // load song infomation to the UI when start application
     this.loadCurretnSong();
+
     // render playlist(song)
     this.render();
   },
